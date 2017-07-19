@@ -4,9 +4,10 @@ Created on Tue Feb 21 13:44:12 2017
 @author: Paul Ogier
 This script is adding a few complentary features on pandas
 """
-import neatcleanstring as nct
 import numpy as np
 import pandas as pd
+
+from neatmartinet import neatcleanstring as nct
 
 # %%
 
