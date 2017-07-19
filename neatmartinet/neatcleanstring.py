@@ -1,3 +1,4 @@
+# author : paul ogier
 # coding=utf-8
 # Various string cleaning functions, not always orthodox
 # Treatment of na values
