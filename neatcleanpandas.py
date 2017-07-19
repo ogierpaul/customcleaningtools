@@ -7,7 +7,7 @@ This script is adding a few complentary features on pandas
 import numpy as np
 import pandas as pd
 
-from neatmartinet import neatcleanstring as nct
+import neatcleanstring as nct
 
 # %%
 
