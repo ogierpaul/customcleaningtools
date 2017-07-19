@@ -7,11 +7,11 @@ This script is adding a few complentary features on pandas
 import numpy as np
 import pandas as pd
 
-import neatcleanstring as nct
+from neatmartinet import neatcleanstring as ncs
 
 # %%
 
-nadict = nct.nadict
+nadict = ncs.nadict
 
 
 # %%
@@ -233,7 +233,7 @@ def __describedate__(myserie):
     :return: number of nan values, minvalue, max value
     '''
     try:
-        myserie = nct.convert_str_to_date(myserie)
+        myserie = ncs.convert_str_to_date(myserie)
     except:
         try:
             myserie = pd.to_datetime(myserie)
