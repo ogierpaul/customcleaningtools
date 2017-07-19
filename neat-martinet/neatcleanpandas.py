@@ -4,14 +4,13 @@ Created on Tue Feb 21 13:44:12 2017
 @author: Paul Ogier
 This script is adding a few complentary features on pandas
 """
-import pandas as pd
+import neatcleanstring as nct
 import numpy as np
-import sys
-import stringcleaningtools as sct
+import pandas as pd
 
 # %%
 
-nadict = sct.nadict
+nadict = nct.nadict
 
 
 # %%
@@ -233,7 +232,7 @@ def __describedate__(myserie):
     :return: number of nan values, minvalue, max value
     '''
     try:
-        myserie = sct.convert_str_to_date(myserie)
+        myserie = nct.convert_str_to_date(myserie)
     except:
         try:
             myserie = pd.to_datetime(myserie)
