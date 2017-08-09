@@ -3,7 +3,7 @@
 # Various string cleaning functions, not always orthodox
 # Treatment of na values
 # Various type conversion (int to str, str to date, split...)
-# Various comparison functions
+# Various comparison functions using fuzzywuzzy package (python levehstein)
 
 import numpy as np
 import pandas as pd

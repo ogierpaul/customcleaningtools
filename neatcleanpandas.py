@@ -7,7 +7,7 @@ This script is adding a few complentary features on pandas
 import numpy as np
 import pandas as pd
 
-from neatmartinet import neatcleanstring as ncs
+import neatcleanstring as ncs
 
 # %%
 
@@ -328,3 +328,13 @@ def aggregateby_value(s, aggfunc=None, isdate=False, dropna=True):
     else:
         return aggfunc(s)
         # %%
+
+def splitdate(s):
+    s2=pd.to_datetime(s)
+    df=pd.DataFrame(index=s2.index)
+    df[s.name+'_year']=s2.dt.year
+    df[s.name + '_month'] = s2.dt.month
+    df[s.name + '_day'] = s2.dt.day
+    df[s.name + '_dayofweek'] = s2.dt.weekday
+    return df
+
