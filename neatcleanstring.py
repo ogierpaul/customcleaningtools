@@ -9,8 +9,7 @@ import numpy as np
 import pandas as pd
 
 
-navalues = ['#', None, np.nan, 'None', '-', 'nan', 'n.a.', '', '#REF!', '#N/A', '#NAME?', '#DIV/0!', '#NUM!', 'Result',
-            'Results','NaT']
+navalues = ['#', None, np.nan, 'None', '-', 'nan', 'n.a.',' ','', '#REF!', '#N/A', '#NAME?', '#DIV/0!', '#NUM!', 'NaT']
 nadict = {}
 for c in navalues:
     nadict[c] = None
@@ -69,7 +68,8 @@ def split(mystring, seplist=separatorlist):
             mystring = mystring.replace(sep, ' ')
         mystring = mystring.replace('  ', ' ')
         mylist= mystring.split(' ')
-        mylist=[m for m in mylist if len(m)>0]
+        mylist = list(filter(lambda x:x not in navalues,mylist))
+        mylist=list(filter(lambda x:len(x)>0,mylist))
         return mylist
 
 
@@ -327,6 +327,7 @@ def replace_list(mylist, mydict):
 
 
 # %%
+
 def rmv_stopwords(myword, stopwords=None, endingwords=None, replacedict=None):
     """
     remove stopwords, ending words, replace words
@@ -362,7 +363,6 @@ def rmv_stopwords(myword, stopwords=None, endingwords=None, replacedict=None):
             return None
         else:
             return myword
-
 
 # %%
 def compare_twostrings(a, b, minlength=3, threshold=0.0):
@@ -486,11 +486,14 @@ def acronym(s):
     """
     create an acronym from a string based on split function from this module
     :param s:string 
-    :return: 
+    :return: string, first letter of each token in the string
     """
     m=split(s)
-    a= ''.join([s[0] for s in m])
-    return a
+    if m is None:
+        return None
+    else:
+        a= ''.join([s[0] for s in m])
+        return a
 # %%
 def makeliststopwords(myserie, minlength=1, threshold=50, rmvwords=None, addwords=None, rmvdigits=True):
     """
