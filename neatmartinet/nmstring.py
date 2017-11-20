@@ -9,7 +9,8 @@ import numpy as np
 import pandas as pd
 
 
-navalues = ['#', None, np.nan, 'None', '-', 'nan', 'n.a.',' ','', '#REF!', '#N/A', '#NAME?', '#DIV/0!', '#NUM!', 'NaT']
+navalues = ['#', None, np.nan, 'None', '-', 'nan', 'n.a.',' ','', '#REF!', '#N/A', '#NAME?', '#DIV/0!', '#NUM!',
+            'NaT','NULL']
 nadict = {}
 for c in navalues:
     nadict[c] = None
@@ -27,30 +28,41 @@ removedchars = ['#', '~', '&', '$', '%', '*', '+', '?', '.']
 
 
 # %%
-def convert_int_to_str(n, fillwithzeroes=None):
+def format_int_to_str(n, zeropadding=None):
     """
-    
-    :param n: number to be converted from int to str
-    :param fillwithzeroes: dafualt None, length of number to be padded iwth zeroes, default = None(remove zeroes)
-    :return: str
-    """
+    format an integer to a string, and padd with zeroes if needed
+    in case of navalues, it returns None
+    in case of a string, it returns the string
+    Args:
+        n (int): integer to be format
+        zeropadding(int): implementation of the zfill method
 
+    Returns:
+        str
+    Examples
+    - format_int_to_str(110) --> '110'
+    - format_int_to_str(foo) --> 'foo'
+    - format_int_to_str(110,zeropadding=4) --> '0110')
+    - format_int_to_str(Nan) --> None
+    """
     if pd.isnull(n) or n in navalues:
         return None
     else:
         n = str(n)
         n = n.lstrip().rstrip()
-        n = n.lstrip('0')
-        n = n.split('.')[0]
-        if fillwithzeroes is not None:
-            n = n.zfill(fillwithzeroes)
+        n=n.split('.')[0]
+        if zeropadding is not None:
+            n = n.zfill(zeropadding)
         return n
 
 
 # %%
 def split(mystring, seplist=separatorlist):
     """
-    
+    Split a string according to the list of separators
+    if the string is an navalue, it returns None
+    if the separator list is not provided, it used the default defined in the module
+    (.separatorlist)
     Args:
         mystring (str): string to be split
         seplist (list): by default separatorlist, list of separators
@@ -74,73 +86,86 @@ def split(mystring, seplist=separatorlist):
 
 
 # %%
-def normalizeunicode(mystring):
+def format_ascii(s):
+    """
+    Normalize to the ascii format
+    Args:
+        s (str): string to be formated
+
+    Returns:
+        str
+    """
     """
     :param mystring: str
     :return: str, normalized as unicode
     """
-    if mystring in navalues:
+    if s in navalues:
         return None
     else:
-        mystring = str(mystring)
+        s = str(s)
         import unicodedata
-        mystring = unicodedata.normalize('NFKD', mystring)
-        mystring = mystring.encode('ASCII', 'ignore').decode('ASCII')
-        return mystring
+        s = unicodedata.normalize('NFKD', s)
+        s = s.encode('ASCII', 'ignore').decode('ASCII')
+        return s
 
 
 # %%
-def normalizechars(mystring, removesep=False, encoding='utf-8', lower=True, min_length=1, remove_s=False):
+def format_ascii_lower(s, encoding='utf-8', min_length=1):
     """
-    :param mystring: str
-    :param removesep: boolean default False, remove separator
-    :param encoding: default 'utf-8'
-    :param lower: boolean, default True, lowercase of strings
-    :param min_length: int, default 1, min length of string to be kept (inclusive)
-    :param remove_s: boolean, default False, remove s at the end of words
-    :return: str
+    Normalize to the ascii format and with lower case
+    Args:
+        s (str): string
+        encoding (str): encoding used as input, default 'utf-8'
+        min_length (int): minimum length of the ouput result (otherwise return None)
+
+    Returns:
+        str
     """
-    if mystring in navalues:
+
+    if s in navalues:
         return None
     else:
-        mystring = str(mystring)
-        if lower:
-            mystring = mystring.lower()
-        mystring = mystring.encode(encoding).decode(encoding)
-        for a in removedchars:
-            mystring = mystring.replace(a, '')
-        if removesep is True:
-            for a in separatorlist:
-                mystring = mystring.replace(a, ' ')
+        s = str(s)
+        s = s.lower()
+
+        s = s.encode(encoding).decode(encoding)
+
         if encoding == 'utf-8':
             for mydict in [accentdict, specialutf8]:
                 for a in mydict.keys():
-                    mystring = mystring.replace(a, mydict[a])
-        mystring = mystring.replace('  ', ' ')
-        mystring = normalizeunicode(mystring)
-        if mystring is None:
+                    s = s.replace(a, mydict[a])
+
+        s = s.replace('  ', ' ')
+        s = format_ascii(s)
+
+        if s is None:
             return None
-        mystring = mystring.encode(encoding).decode(encoding)
-        mystring = mystring.replace('  ', ' ').lstrip().rstrip()
-        if remove_s is True:
-            if mystring not in motavecS:
-                mystring = mystring.rstrip('s')
-        if len(mystring) >= min_length:
-            return mystring
+
+        s = s.encode(encoding).decode(encoding)
+        s = s.replace('  ', ' ').lstrip().rstrip()
+
+        if len(s) >= min_length:
+            return s
+
         else:
             return None
 
 
 # %%
-def word_count(myserie):
+def word_count(v):
     """
     counts the occurence of words in a panda.Series
-    :param myserie: panda.Series containing string values
-    :return: a panda.Series with words as index and occurences as data
+    returnes a panda.Series with words as index and number of occurences as data
+    Args:
+        v (pd.Series): panda.Series containing string values
+
+    Returns:
+        pd.Series
+
     """
     import itertools
-    myserie = myserie.replace(nadict).dropna().apply(split)
-    return pd.Series(list(itertools.chain(*myserie))).value_counts(dropna=True)
+    v = v.replace(nadict).dropna().apply(split)
+    return pd.Series(list(itertools.chain(*v))).value_counts(dropna=True)
 
 
 # %%
@@ -365,128 +390,66 @@ def rmv_stopwords(myword, stopwords=None, endingwords=None, replacedict=None):
             return myword
 
 # %%
-def compare_twostrings(a, b, minlength=3, threshold=0.0):
-    """
-    compare two strings using fuzzywuzzy.fuzz.ratio
-    :param a: str, first string
-    :param b: str, second string
-    :param minlength: int, default 3, min  length for ratio
-    :param threshold: float, default 0, threshold vor non-null value
-    :return: float, number between 0 and 1
-    """
-    from fuzzywuzzy.fuzz import ratio
-    if pd.isnull(a) or pd.isnull(b):
-        return None
-    elif min([len(a), len(b)]) < minlength:
-        return 0
-    else:
-        r = ratio(a, b) / 100
-        if r >= threshold:
-            return r
-        else:
-            return 0.0
-
-
-# %%
-def compare_tokenized_strings(a, b, tokenthreshold=0.0, countthreshold=0.0, mintokenlength=3):
-    """
-    compare two strings by splitting them in tokens and comparing them tokens to tokens, using fuzzywuzzy.fuzz.ratio
-    :param a: str, first string
-    :param b: str, second string
-    :param tokenthreshold: float, default 0.0, threshold for a match on a token
-    :param countthreshold: float, default 0.0, threshold for a match on the two strings
-    :param mintokenlength: int, default 0, 
-    :return: float, number between 0 and 1
-    """
-    if pd.isnull(a) or pd.isnull(b):
-        return None
-    else:
-        # exact match
-        if a == b:
-            return 1
-        # split strings by tokens and calculate score on each token
-        else:
-            # split the string
-            a_tokens = [s for s in a.split(' ') if len(s) >= mintokenlength]
-            b_tokens = [s for s in b.split(' ') if len(s) >= mintokenlength]
-            if len(a_tokens)==0 or len(b_tokens)==0:
-                return None
-            elif len(a_tokens) >= len(b_tokens):
-                long_tokens = a_tokens
-                short_tokens = b_tokens
-            else:
-                long_tokens = b_tokens
-                short_tokens = a_tokens
-            count = 0.0
-            for t_short in short_tokens:
-                if t_short in long_tokens:
-                    count += 1
-                else:
-                    t_match_max = 0.0
-                    for t_long in long_tokens:
-                        t_match = compare_twostrings(t_short, t_long, threshold=tokenthreshold)
-                        if t_match > t_match_max:
-                            t_match_max = t_match
-                    count += t_match_max
-
-        percenttokensmatching = count / len(short_tokens)
-        if percenttokensmatching >= countthreshold:
-            return percenttokensmatching
-        else:
-            return 0.0
-
-
-# %%
-def calculate_token_frequency(myserie):
+def calculate_token_frequency(v):
     """
     calculate the frequency a token is used in a particular column
-    :param myserie: pandas.Series, column to be evaluated
-    :return: pandas.Series of float in [0,1]
-    """
-    wordlist = word_count(myserie)
+    returns a Series of float in [0,1]
+    Args:
+        v (pd.Series): column to be evaluated
 
-    def countoccurences(r, wordlist):
+    Returns:
+        pd.Series
+    """
+    wordlist = word_count(v)
+
+    def countoccurences(r, word_list):
         if pd.isnull(r):
             return None
         else:
             mylist = r.split(' ')
             count = 0
             for m in mylist:
-                if m in wordlist.index:
-                    count += wordlist.loc[m]
+                if m in word_list.index:
+                    count += word_list.loc[m]
             return count
 
-    x = myserie.apply(lambda r: countoccurences(r, wordlist=wordlist))
+    x = v.apply(lambda r: countoccurences(r, word_list=wordlist))
     x.fillna(x.max(), inplace=True)
     x = x / x.max()
     return x
 
 
-def calculate_cat_frequency(myserie):
+def calculate_cat_frequency(v):
     """
     calculate the frequency a category is used in a particular column
-    :param myserie: pandas.Series, column to be evaluated
-    :return: pandas.Series of float in [0,1]
-    """
-    catlist = myserie.value_counts()
+    Args:
+        v (pd.Series):
 
-    def countcat(r, catlist):
+    Returns:
+        pd.Series
+    """
+    catlist = v.value_counts()
+
+    def countcat(r, category_list):
         if pd.isnull(r):
             return None
         else:
-            if r in catlist.index:
+            if r in category_list.index:
                 return catlist.loc[r]
 
-    x = myserie.apply(lambda r: countcat(r, catlist=catlist))
+    x = v.apply(lambda r: countcat(r, category_list=catlist))
     x.fillna(x.max(), inplace=True)
     x = x / x.max()
     return x
 
 def acronym(s):
     """
-    create an acronym from a string based on split function from this module
-    :param s:string 
-    :return: string, first letter of each token in the string
+    make an acronym of the string: take the first line of each token
+    Args:
+        s (str):
+
+    Returns:
+        str
     """
     m=split(s)
     if m is None:
@@ -494,6 +457,7 @@ def acronym(s):
     else:
         a= ''.join([s[0] for s in m])
         return a
+
 # %%
 def makeliststopwords(myserie, minlength=1, threshold=50, rmvwords=None, addwords=None, rmvdigits=True):
     """

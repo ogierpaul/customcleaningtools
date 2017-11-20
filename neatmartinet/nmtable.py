@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Feb 21 13:44:12 2017
-@author: Paul Ogier
 This script is adding a few complentary features on pandas
 """
 import numpy as np
 import pandas as pd
 
-from neatmartinet import neatcleanstring as ncs
+import neatmartinet as nm
 
 # %%
 
-nadict = ncs.nadict
+nadict = nm.nadict
 
 
 # %%
@@ -141,14 +140,14 @@ def checkuniqueid(myserie):
 
 
 # %%
+# noinspection PyDictCreation
 def checkna(myserie):
     '''
     counts the occurence of null values in a pandas.Series
     :param myserie: pandas.Series to be checked
     :return: dict, number and percentage of null values 
     '''
-    mydict = {}
-    mydict['nanValues'] = myserie.isnull().sum()
+    mydict = {'nanValues' : myserie.isnull().sum() }
     mydict['percentNonNull'] = '{:.0%}'.format(1 - myserie.isnull().sum() / myserie.shape[0])
     return mydict
 
@@ -160,7 +159,7 @@ def summarize(X):
     :param X: DataFrame or Serie
     :return: print summarize on screen as a Dataframe
     '''
-    if type(X) == pd.core.frame.DataFrame:
+    if type(X) == pd.DataFrame:
         return __summarize_df__(X)
     else:
         return __summarize_serie__(X)
@@ -233,7 +232,7 @@ def __describedate__(myserie):
     :return: number of nan values, minvalue, max value
     '''
     try:
-        myserie = ncs.convert_str_to_date(myserie)
+        myserie = nm.convert_str_to_date(myserie)
     except:
         try:
             myserie = pd.to_datetime(myserie)
@@ -262,7 +261,6 @@ def generate_sample_dataframe(nrows=5):
     -mixed_col
     
     '''
-    import numpy as np
     df = pd.DataFrame(np.random.random((nrows, 1)))
     df.columns = ['float_col']
     df['float_col_hasna'] = np.random.choice([-1.0, 0.0, 0.7, 2.0, 3.0, np.nan], size=nrows)
@@ -272,7 +270,7 @@ def generate_sample_dataframe(nrows=5):
     d = []
     for c in range(nrows):
         delta = '{:.0f}'.format(np.random.uniform(-180, +180))
-        b = b = a + pd.Timedelta(delta + ' days')
+        b = a + pd.Timedelta(delta + ' days')
         d.append(b)
     df['date_col'] = d
     df['date_col'] = pd.to_datetime(df['date_col'].dt.date)
@@ -330,6 +328,15 @@ def aggregateby_value(s, aggfunc=None, isdate=False, dropna=True):
         # %%
 
 def splitdate(s):
+    """
+    Takes a date series
+    Args:
+        s (pd.Series): date serie
+
+    Returns:
+        pd.DataFrame
+    returns a serie with _year,_month,_day,_dayofweek
+    """
     s2=pd.to_datetime(s)
     df=pd.DataFrame(index=s2.index)
     df[s.name+'_year']=s2.dt.year
@@ -338,3 +345,77 @@ def splitdate(s):
     df[s.name + '_dayofweek'] = s2.dt.weekday
     return df
 
+def concatenate_names(m):
+    """
+    This small function concatenate the different company names found across the names columns of SAP (name1, name2..)
+    It takes the name found in the first column. If the name in the second column adds information to the first,
+    it concatenates (by adding it in brackets). And it continues like this for the other columns
+    Args:
+        m (list): list of strings
+
+    Returns:
+        concatenated list of strings
+    Examples:
+    name1='KNIGHT FRANK (SA) PTY LTD'
+    name2='KNIGHT FRANK'
+    name3='ex-batman'
+    name4='kapis code 3000'
+    concatenate_names([name1,name2,name3,name4]):
+        'KNIGHT FRANK (SA) PTY LTD (ex-batman, kapis code 3000)
+    """
+    #Remove na values
+    r = pd.Series(m, index=range(len(m)))
+    r.dropna(inplace=True)
+    if r.shape[0]==0:
+        return None
+    elif r.shape[0]==1:
+        return r[0]
+    else:
+        s = r[0]
+        for ix in range(1,len(r)):
+            #Compare fuzzy matching score with already concatenated string
+            s1=nm.format_ascii_lower(s)
+            r1=nm.format_ascii_lower(r[ix])
+            score=nm.compare_tokenized_strings(s1,r1)
+            if pd.isnull(score) or score <0.8:
+                #if score is less than 0.8 add it in brackets
+                if len(s)==len(r[0]):
+                    s=s+' ('+r[ix]+')'
+                else:
+                    s=s.rstrip(')')+', '+r[ix]+')'
+        return s
+
+
+def check_column_same(a, b):
+    if set(a) == set(b):
+        return True
+    else:
+        common_set = np.intersect1d(a, b)
+        missing_a_columns = list(filter(lambda x: x not in common_set, b))
+        if len(missing_a_columns) > 0:
+            print('unknown columns from', b.name, 'not in', a.name, ':', missing_a_columns)
+        missing_b_columns = list(filter(lambda x: x not in common_set, a))
+        if len(missing_b_columns) > 0:
+            print('unknown columns from', a.name, 'not in', b.name, ':', missing_b_columns)
+        return False
+
+
+def find_missing_keys_in_index(keys, ref_list, verbose=True):
+    """
+    Takes as input the a list of keys, and check if they are present in a reference list
+    For example, make sure that all of the keys are in the index before launching a loop
+    Args:
+        keys (iterable): list of keys to be checked
+        ref_list (iterable): list of reference keys
+        verbose (bool): whether or not to print the statements
+
+    Returns:
+        bool: If True, then keys are missing
+    """
+    incorrect_keys = list(filter(lambda x: x not in ref_list, keys))
+    if len(incorrect_keys) > 0:
+        if verbose:
+            print('those keys are missing in the index:', incorrect_keys)
+        return True
+    else:
+        return False

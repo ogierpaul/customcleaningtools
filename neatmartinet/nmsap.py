@@ -1,0 +1,18 @@
+sapdict={'SYSID': 'systemid',
+         'LIFNR': 'companyid',
+         'NAME1': 'name1',
+         'NAME2': 'name2',
+         'NAME3': 'name3',
+         'NAME4': 'name4',
+         'STRAS': 'streetaddress',
+         'PSTLZ': 'postalcode',
+         'ORT01': 'cityname',
+         'LAND1': 'country',
+         'KRAUS': 'dunsnumber',
+         'STCD1': 'registerid1',
+         'STCD2': 'registerid2',
+         'STCEG': 'taxid',
+         'VBUND': 'kapisid',
+         'NATO_CAGE_CODE': 'cageid',
+         'KTOKK': 'accounttype'}
+
