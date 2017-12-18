@@ -1,9 +1,7 @@
-from distutils.core import setup
-
 from setuptools import setup
 
 setup(name='neatmartinet',
-      version ='0.2.2',
+      version ='0.2.4',
       description='Ad-hoc pandas dataframe and string cleaning functions implemented in unreadable Python.',
       author='Amber Ocelot',
       author_email='AmberOcelot@gmail.com',

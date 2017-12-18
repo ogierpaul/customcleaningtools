@@ -8,14 +8,13 @@
 import numpy as np
 import pandas as pd
 
-
-navalues = ['#', None, np.nan, 'None', '-', 'nan', 'n.a.',' ','', '#REF!', '#N/A', '#NAME?', '#DIV/0!', '#NUM!',
-            'NaT','NULL']
+navalues = ['#', None, np.nan, 'None', '-', 'nan', 'n.a.', ' ', '', '#REF!', '#N/A', '#NAME?', '#DIV/0!', '#NUM!',
+            'NaT', 'NULL']
 nadict = {}
 for c in navalues:
     nadict[c] = None
 
-separatorlist = [' ', ',', '/', '-', ':', "'", '(', ')', '|', '°', '!', '\n', '_']
+separatorlist = [' ', ',', '/', '-', ':', "'", '(', ')', '|', '°', '!', '\n', '_', '.']
 motavecS = ['après', 'français', 'francais', 'sous', 'plus', 'repas', 'souris']
 accentdict = {'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
               'à': 'a', 'ä': 'a', 'â': 'a', 'á': 'a',
@@ -50,7 +49,7 @@ def format_int_to_str(n, zeropadding=None):
     else:
         n = str(n)
         n = n.lstrip().rstrip()
-        n=n.split('.')[0]
+        n = n.split('.')[0]
         if zeropadding is not None:
             n = n.zfill(zeropadding)
         return n
@@ -79,9 +78,9 @@ def split(mystring, seplist=separatorlist):
         for sep in seplist:
             mystring = mystring.replace(sep, ' ')
         mystring = mystring.replace('  ', ' ')
-        mylist= mystring.split(' ')
-        mylist = list(filter(lambda x:x not in navalues,mylist))
-        mylist=list(filter(lambda x:len(x)>0,mylist))
+        mylist = mystring.split(' ')
+        mylist = list(filter(lambda x: x not in navalues, mylist))
+        mylist = list(filter(lambda x: len(x) > 0, mylist))
         return mylist
 
 
@@ -110,13 +109,14 @@ def format_ascii(s):
 
 
 # %%
-def format_ascii_lower(s, encoding='utf-8', min_length=1):
+def format_ascii_lower(s, encoding='utf-8', min_length=1, removesep=True):
     """
     Normalize to the ascii format and with lower case
     Args:
         s (str): string
         encoding (str): encoding used as input, default 'utf-8'
         min_length (int): minimum length of the ouput result (otherwise return None)
+        removesep (bool): remove or not separators
 
     Returns:
         str
@@ -127,6 +127,10 @@ def format_ascii_lower(s, encoding='utf-8', min_length=1):
     else:
         s = str(s)
         s = s.lower()
+
+        if removesep is True:
+            for sep in separatorlist:
+                s = s.replace(sep, ' ')
 
         s = s.encode(encoding).decode(encoding)
 
@@ -169,7 +173,7 @@ def word_count(v):
 
 
 # %%
-def convert_str_to_date(myserie, datelim=None, dayfirst=True,  sep=None):
+def convert_str_to_date(myserie, datelim=None, dayfirst=True, sep=None):
     """
     convert string to date
     :param myserie: pandas.Series, column to be converted
@@ -352,7 +356,6 @@ def replace_list(mylist, mydict):
 
 
 # %%
-
 def rmv_stopwords(myword, stopwords=None, endingwords=None, replacedict=None):
     """
     remove stopwords, ending words, replace words
@@ -388,6 +391,7 @@ def rmv_stopwords(myword, stopwords=None, endingwords=None, replacedict=None):
             return None
         else:
             return myword
+
 
 # %%
 def calculate_token_frequency(v):
@@ -442,6 +446,7 @@ def calculate_cat_frequency(v):
     x = x / x.max()
     return x
 
+
 def acronym(s):
     """
     make an acronym of the string: take the first line of each token
@@ -451,12 +456,13 @@ def acronym(s):
     Returns:
         str
     """
-    m=split(s)
+    m = split(s)
     if m is None:
         return None
     else:
-        a= ''.join([s[0] for s in m])
+        a = ''.join([s[0] for s in m])
         return a
+
 
 # %%
 def makeliststopwords(myserie, minlength=1, threshold=50, rmvwords=None, addwords=None, rmvdigits=True):
@@ -479,6 +485,6 @@ def makeliststopwords(myserie, minlength=1, threshold=50, rmvwords=None, addword
         stopwords = [s for s in stopwords if not s in rmvwords]
     # noinspection PyAugmentAssignment
     if addwords is not None:
-        stopwords +=list(addwords)
+        stopwords += list(addwords)
     stopwords = list(set(stopwords))
     return stopwords
