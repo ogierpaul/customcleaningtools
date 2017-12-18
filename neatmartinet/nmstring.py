@@ -194,7 +194,9 @@ def convert_str_to_date(myserie, datelim=None, dayfirst=True, sep=None):
 
     from datetime import datetime
     # clean a bit the string
-    myserie = pd.Series(myserie).astype(str).replace(nadict)
+    myserie = pd.Series(myserie).astype(str)
+    assert isinstance(myserie, pd.Series)
+    myserie = myserie.replace(nadict)
     # check datelim
     if datelim is None:
         datelim = pd.datetime.now()
@@ -237,23 +239,23 @@ def convert_str_to_date(myserie, datelim=None, dayfirst=True, sep=None):
     y['A'] = y['ChaineTronquee'].apply(lambda r: int(r.split(sep)[0]))
     y['B'] = y['ChaineTronquee'].apply(lambda r: int(r.split(sep)[1]))
     y['C'] = y['ChaineTronquee'].apply(lambda r: int(r.split(sep)[2]))
-    localList = ['A', 'B', 'C']
+    local_list = ['A', 'B', 'C']
 
     year = None
-    for i in localList:
+    for i in local_list:
         if y[i].max() >= 1970:
             year = i
     if year is None:
         print(myserie.name, ':Year not found')
         myserie = pd.to_datetime(np.nan)
         return myserie
-    localList.remove(year)
+    local_list.remove(year)
 
     day = None
     month = None
 
-    i0 = localList[0]
-    i1 = localList[1]
+    i0 = local_list[0]
+    i1 = local_list[1]
     # méthode par mois max
     if y[i0].max() > 12:
         month = i1
@@ -359,17 +361,23 @@ def replace_list(mylist, mydict):
 def rmv_stopwords(myword, stopwords=None, endingwords=None, replacedict=None):
     """
     remove stopwords, ending words, replace words
-    :param myword: str,word to be cleaned
-    :param stopwords: list, default None, list of words to be removed
-    :param endingwords: list, default None, list of words to be removed at the end of tokens
-    :param replacedict: dict, default None, dict of words to be replaced
-    :return: str, cleaned string
+    Args:
+        myword (str): word to be cleaned
+        stopwords (list): list of words to be removed
+        endingwords (list): list of words to be removed at the end of tokens
+        replacedict (dict): dict of words to be replaced
+
+    Returns:
+        str
     """
+
     if pd.isnull(myword):
         return None
     elif len(myword) == 0:
         return None
     else:
+        myword = format_ascii_lower(myword)
+
         mylist = split(myword)
 
         mylist = [m for m in mylist if not m in stopwords]
