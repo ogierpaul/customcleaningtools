@@ -1,5 +1,5 @@
 from setuptools import setup
-from neatmartinet import __version__ as version
+version  = '0.2.6'
 
 setup(name='neatmartinet',
       version=version,

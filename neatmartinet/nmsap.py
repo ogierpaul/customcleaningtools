@@ -1,5 +1,4 @@
 import pandas as pd
-
 import neatmartinet as nm
 
 sapdict={'SYSID': 'systemid',
